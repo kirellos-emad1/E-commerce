@@ -7,6 +7,145 @@ generator client {
 
 datasource db {
   provider  = "postgresql"
-  url  	    = env("DATABASE_URL")
+  url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
+
+// User database model
+
+model User {
+  id            String      @id @default(uuid())
+  email         String      @unique
+  username      String      @unique
+  phone         String?
+  password      String?
+  image         String?
+  isValiedEmail Boolean    @default(false)
+  role          UserRole
+  created_at    DateTime    @default(now())
+  updated_at    DateTime    @updatedAt
+  last_login    DateTime?
+  reviews       Review[]
+  addresses     Addresses[]
+  wishlist      Wishlist[]
+  carts         Cart[]
+}
+
+enum UserRole {
+  CUSTOMER
+  SELLER
+  ADMIN
+}
+
+model Addresses {
+  id             String   @id @default(uuid())
+  userId         String
+  title          String
+  address_line_1 String
+  address_line_2 String?
+  country        String
+  city           String
+  postal_code    String
+  phone_number   String
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+// Cart Database Model
+model Cart {
+  id        String     @id @default(uuid())
+  status    CartStatus
+  createdBy String
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  user      User       @relation(fields: [createdBy], references: [id])
+  CartItem  CartItem[]
+}
+enum CartStatus {
+  ACTIVE
+  ORDERD
+  ABANDONED
+}
+
+model CartItem {
+  cartId    String
+  productId String
+  price     Float
+  quantity  Int      @unique @default(autoincrement())
+  createdAt DateTime
+  cart      Cart     @relation(fields: [cartId], references: [id])
+  product   Product  @relation(fields: [productId], references: [id])
+
+  @@id([cartId, productId])
+}
+
+
+// Product Database model
+
+model Product {
+  id            String       @id @default(uuid())
+  categoryId    String
+  title         String
+  images        String[]
+  summary       String
+  description   String
+  price         Float
+  discountType  DiscountType
+  discountValue Float
+  tags          String[]
+  category      Category     @relation(fields: [categoryId], references: [id])
+  created_at    DateTime     @default(now())
+  updated_at    DateTime     @updatedAt
+  cartItems     CartItem[]
+  reviews       Review[]
+  wishlist      Wishlist[]
+}
+
+enum DiscountType {
+  NONE
+  PERCENT
+  AMOUNT
+}
+
+
+model Category {
+  id            String     @id @default(uuid())
+  parentId      String?
+  name          String
+  description   String
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  products      Product[]
+  subCategories Category[] @relation("ParentChild")
+  parent        Category?  @relation("ParentChild", fields: [parentId], references: [id])
+}
+
+// Reviews Database model 
+
+model Review {
+  userId     String
+  productId  String
+  comment    String
+  rating     Int
+  created_at DateTime @default(now())
+  product    Product  @relation(fields: [productId], references: [id])
+  user       User     @relation(fields: [userId], references: [id])
+
+  @@unique([userId, productId], name: "Review_userId_ProductId_key")
+}
+
+// wishlist Database Model
+
+model Wishlist {
+  userId    String
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+  user      User    @relation(fields: [userId], references: [id])
+
+  @@unique([userId, productId], name: "Wishlist_userId_productId_key")
+}
+
+// TODO: create the order Model
+
