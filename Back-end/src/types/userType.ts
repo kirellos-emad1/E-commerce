@@ -7,7 +7,7 @@ export type User = {
   phone?: string | null;
   password?: string | null;
   image?: string |null;
-  isValidEmail: boolean;
+  isValidEmail?: boolean;
   role: UserRole;
   created_at?: Date;
   updated_at?: Date;

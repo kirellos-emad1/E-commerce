@@ -99,7 +99,7 @@ export const updateUser = async (req: Request, res: Response) => {
 
   try {
     
-    const { email, password, username, image, phone, role } = req.body;
+    const { email, password, username, image, phone, role, isValidEmail } = req.body;
     const id = req.params.id
       const userData:Partial<User> = {}
   
@@ -109,6 +109,7 @@ export const updateUser = async (req: Request, res: Response) => {
       if (image) userData.image= image
       if (phone) userData.phone= phone
       if (role) userData.role= role
+      if (isValidEmail) userData.isValidEmail= isValidEmail
       const result = await user.updateUser(id, userData)
       res.json({
         status: 200,
@@ -116,7 +117,7 @@ export const updateUser = async (req: Request, res: Response) => {
         message: "The user has been DELETED successfully",
       });
   } catch (error) {
-    res.status(400).json(error)
+    res.status(400).json(`${error}`)
   }
 };
 
@@ -130,6 +131,7 @@ export const authenticate = async (req: Request, res: Response) => {
 
     res.status(200).json({ userData });
   } catch (err) {
-    res.status(400).json(err);
+    console.log(err)
+    res.status(400).json(`${err}`);
   }
 };

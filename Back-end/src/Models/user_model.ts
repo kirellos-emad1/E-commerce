@@ -31,7 +31,7 @@ export class UserModel {
   }
   async getSpecificUser(id: string): Promise<User> {
     try {
-      const specificUser = await this.getUserData('',id)
+      const specificUser = await this.getUserData("", id);
 
       if (!specificUser) {
         throw new Error(`User with ID ${id} not found`);
@@ -117,7 +117,22 @@ export class UserModel {
           id,
         },
       });
-
+      if (updates.email) {
+        const existingEmail = await db.user.findUnique({
+          where: { email: updates.email },
+        });
+        if (existingEmail) {
+          throw new Error(`this email is already taken ${updates.email}`);
+        }
+      }
+      if (updates.username) {
+        const existingUsername = await db.user.findUnique({
+          where: { username: updates.username },
+        });
+        if (existingUsername) {
+          throw new Error(`this username is already taken ${updates.username}`);
+        }
+      }
       if (!existingUser) {
         throw new Error(`User with ID ${id} not found`);
       }
@@ -145,7 +160,7 @@ export class UserModel {
 
       return updatedUser;
     } catch (error) {
-      throw new Error(`Error updating user: ${error}`);
+      throw error;
     }
   }
   async authenticate(email: string, password: string): Promise<User | null> {
@@ -160,16 +175,26 @@ export class UserModel {
       }
 
       const { password: hashedPassword } = getUserPassword as any;
-      const isPasswordValid = this.comparePasswords(password, hashedPassword);
-
+      const isPasswordValid = await this.comparePasswords(
+        password,
+        hashedPassword
+      );
       if (!isPasswordValid) {
         throw new Error(`Password doesn't match`);
       }
-
-      const userData = await this.getUserData(email, '');
+      const updateLastSeen = async () => {
+        await db.user.update({
+          where: { email },
+          data: {
+            last_login: new Date(),
+          },
+        });
+      };
+      await updateLastSeen();
+      const userData = await this.getUserData(email, "");
       return userData;
     } catch (err) {
-      throw new Error(`Unable to authenticate user: ${err}`);
+      throw `${err}`;
     }
   }
 
@@ -179,42 +204,41 @@ export class UserModel {
   }
 
   async getUserData(email: string, id: string): Promise<any> {
-    if (email){
-
-        const userData = await db.user.findUnique({
-          where: { email },
-          select: {
-            id: true,
-            email: true,
-            username: true,
-            phone: true,
-            image: true,
-            isValidEmail: true,
-            role: true,
-            created_at: true,
-            updated_at: true,
-            last_login: true,
-          },
-        });
-        return userData;
+    if (email) {
+      const userData = await db.user.findUnique({
+        where: { email },
+        select: {
+          id: true,
+          email: true,
+          username: true,
+          phone: true,
+          image: true,
+          isValidEmail: true,
+          role: true,
+          created_at: true,
+          updated_at: true,
+          last_login: true,
+        },
+      });
+      return userData;
     }
-    if (id){
-        const userData = await db.user.findUnique({
-            where: { id },
-            select: {
-                id: true,
-                email: true,
-                username: true,
-                phone: true,
-                image: true,
-                isValidEmail: true,
-                role: true,
-                created_at: true,
-                updated_at: true,
-                last_login: true,
-            },
-          });
-          return userData;
+    if (id) {
+      const userData = await db.user.findUnique({
+        where: { id },
+        select: {
+          id: true,
+          email: true,
+          username: true,
+          phone: true,
+          image: true,
+          isValidEmail: true,
+          role: true,
+          created_at: true,
+          updated_at: true,
+          last_login: true,
+        },
+      });
+      return userData;
     }
   }
 }

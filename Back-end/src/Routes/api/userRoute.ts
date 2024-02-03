@@ -9,5 +9,5 @@ router.route("/login").post(userHandler.authenticate)
 router.route("/get/:id").get(userHandler.getSpecificUser)
 router.route("/get-all-users").get(userHandler.getAllUsers)
 router.route('/delete/:id').delete( userHandler.deleteUser)
-router.route("/update").patch( userHandler.updateUser)
+router.route("/update/:id").patch( userHandler.updateUser)
 export default router
