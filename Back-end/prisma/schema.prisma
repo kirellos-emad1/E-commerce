@@ -14,27 +14,57 @@ datasource db {
 // User database model
 
 model User {
-  id            String      @id @default(uuid())
-  email         String      @unique
-  username      String      @unique
-  phone         String?
-  password      String?
-  image         String?
-  isValidEmail Boolean    @default(false)
-  role          UserRole
-  created_at    DateTime    @default(now())
-  updated_at    DateTime    @updatedAt
-  last_login    DateTime?
-  reviews       Review[]
-  addresses     Addresses[]
-  wishlist      Wishlist[]
-  carts         Cart[]
+  id           String      @id @default(uuid())
+  email        String      @unique
+  username     String      @unique
+  phone        String?
+  password     String?
+  image        String?
+  isValidEmail Boolean     @default(false)
+  role         UserRole    @default(CUSTOMER)
+  created_at   DateTime    @default(now())
+  updated_at   DateTime    @updatedAt
+  last_login   DateTime?
+  account      Account[]
+  addresses    Addresses[]
+  reviews      Review[]
+  wishlist     Wishlist[]
+  carts        Cart[]
+  products     Product[]
 }
 
 enum UserRole {
   CUSTOMER
   SELLER
   ADMIN
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model VerificationToken {
+  id      String   @id @default(cuid())
+  email   String
+  token   String   @unique
+  expires DateTime
+
+  @@unique([email, token])
 }
 
 model Addresses {
@@ -63,6 +93,7 @@ model Cart {
   user      User       @relation(fields: [createdBy], references: [id])
   CartItem  CartItem[]
 }
+
 enum CartStatus {
   ACTIVE
   ORDERD
@@ -81,7 +112,6 @@ model CartItem {
   @@id([cartId, productId])
 }
 
-
 // Product Database model
 
 model Product {
@@ -98,6 +128,8 @@ model Product {
   category      Category     @relation(fields: [categoryId], references: [id])
   created_at    DateTime     @default(now())
   updated_at    DateTime     @updatedAt
+  ownerId       String
+  owner         User         @relation(fields: [ownerId], references: [id])
   cartItems     CartItem[]
   reviews       Review[]
   wishlist      Wishlist[]
@@ -108,7 +140,6 @@ enum DiscountType {
   PERCENT
   AMOUNT
 }
-
 
 model Category {
   id            String     @id @default(uuid())
@@ -148,4 +179,3 @@ model Wishlist {
 }
 
 // TODO: create the order Model
-

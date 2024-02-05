@@ -1,13 +1,11 @@
 import { Router } from "express";
-import * as userHandler from "../../Handlers/user_handler"
+import * as userHandler from "../../Handlers/userHandler"
+import { verifyJWT } from "../../Middleware/verifyJWT";
 const router = Router()
 
-router.route("/register").post(userHandler.createCustomer)
-router.route("/register/seller").post(userHandler.createSeller)
-router.route("/register/admin").post(userHandler.createAdmin)
-router.route("/login").post(userHandler.authenticate)
-router.route("/get/:id").get(userHandler.getSpecificUser)
-router.route("/get-all-users").get(userHandler.getAllUsers)
-router.route('/delete/:id').delete( userHandler.deleteUser)
-router.route("/update/:id").patch( userHandler.updateUser)
+router.route("/all").get(verifyJWT,userHandler.getAllUsers)
+router.route("/:id").get(verifyJWT,userHandler.getUserById)
+router.route("/register").post(userHandler.create)
+router.route('/delete/:id').delete(verifyJWT,userHandler.deleteUser)
+router.route("/update/:id").patch(verifyJWT,userHandler.updateUser)
 export default router

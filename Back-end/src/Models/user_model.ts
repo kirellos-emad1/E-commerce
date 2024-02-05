@@ -29,7 +29,7 @@ export class UserModel {
       throw new Error(`No user is found: ${error}`);
     }
   }
-  async getSpecificUser(id: string): Promise<User> {
+  async getUserById(id: string): Promise<User> {
     try {
       const specificUser = await this.getUserData("", id);
 
@@ -112,6 +112,10 @@ export class UserModel {
   }
   async updateUser(id: string, updates: Partial<User>): Promise<User> {
     try {
+      if(Object.keys(updates).length === 0){
+        throw new Error("no date provided to update the user");
+        
+      }
       const existingUser = await db.user.findUnique({
         where: {
           id,
@@ -182,21 +186,24 @@ export class UserModel {
       if (!isPasswordValid) {
         throw new Error(`Password doesn't match`);
       }
-      const updateLastSeen = async () => {
-        await db.user.update({
-          where: { email },
-          data: {
-            last_login: new Date(),
-          },
-        });
-      };
-      await updateLastSeen();
+
+      await this.updateLastSeen(email);
       const userData = await this.getUserData(email, "");
       return userData;
     } catch (err) {
       throw `${err}`;
     }
   }
+
+   updateLastSeen = async(email:string)=>{
+    await db.user.update({
+      where:{
+        email
+      },data:{
+        last_login: new Date()
+      }
+    })
+   }
 
   comparePasswords(password: string, hashedPassword: string): Promise<boolean> {
     const saltedPassword = `${password}${process.env.BCRYPT_PASSWORD}`;

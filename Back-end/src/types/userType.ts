@@ -6,6 +6,7 @@ export type User = {
   username: string;
   phone?: string | null;
   password?: string | null;
+  updatedPassword?:string| null;
   image?: string |null;
   isValidEmail?: boolean;
   role: UserRole;

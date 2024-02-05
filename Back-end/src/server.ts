@@ -1,13 +1,20 @@
 import express, {Express, Request, Response, Application} from "express"
 import dotenv from "dotenv"
 import routers from './Routes';
-import { db} from './db/prisma'
+import cors from "cors"
+import { corsOptions } from "./config/corsOptions";
 import bodyParser from 'body-parser';
+import cookieParser from "cookie-parser";
 dotenv.config()
 
 
 const app: Application = express()
+
+app.use(cors(corsOptions))
+
 app.use(bodyParser.json());
+
+app.use(cookieParser())
 
 const port = process.env.PORT || 5050
 app.use('/api', routers)
